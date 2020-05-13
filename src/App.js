@@ -1,45 +1,71 @@
-import { BrowserRouter as Router, Link, Route, Switch } from "react-router-dom";
+import { Route, Router, Switch } from "react-router-dom";
 import "./App.css";
-import React from "react";
+import React, { useEffect } from "react";
+import Navbar from "./components/Navbar";
+import { useDispatch, useSelector } from "react-redux";
+import { handleInitialData } from "./actions/shared";
+import Question from "./components/Question";
+import styled from "styled-components";
+import NewQuestion from "./components/NewQuestion";
+import Leaderboard from "./components/Leaderboard";
+import SignIn from "./components/SignIn";
+import QuestionList from "./components/QuestionList";
+import { LoadingBar } from "react-redux-loading";
+import { createBrowserHistory } from "history";
+import NoMatch from "./components/NoMatch";
 
-function Navbar() {
+const history = createBrowserHistory();
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Main = styled.main`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2rem;
+`;
+
+const App = () => {
+  const dispatch = useDispatch();
+  const authedUser = useSelector((state) => state.authedUser);
+
+  useEffect(() => {
+    dispatch(handleInitialData());
+  }, [dispatch]);
+
   return (
-    <nav>
-      <ul>
-        <li>
-          <Link to="/">Home</Link>
-        </li>
-        <li>
-          <Link to="/about">About</Link>
-        </li>
-        <li>
-          <Link to="/users">Users</Link>
-        </li>
-      </ul>
-    </nav>
+    <Router history={history}>
+      <Container>
+        <LoadingBar />
+        <React.Fragment>
+          <Navbar />
+          <Main>
+            {!authedUser ? (
+              <SignIn />
+            ) : (
+              <Switch>
+                <Route exact path="/">
+                  <QuestionList />
+                </Route>
+                <Route path="/leaderboard">
+                  <Leaderboard />
+                </Route>
+                <Route path="/questions/:questionId">
+                  <Question />
+                </Route>
+                <Route path="/add">
+                  <NewQuestion />
+                </Route>
+              </Switch>
+            )}
+          </Main>
+        </React.Fragment>
+      </Container>
+    </Router>
   );
-}
-
-const App = () => (
-  <Router>
-    <div>
-      <Navbar />
-      <Switch>
-        <Route exact path="/">
-          <div>Main</div>
-        </Route>
-        <Route path="/leaderboard">
-          <div>leaderboard</div>
-        </Route>
-        <Route path="/questions/:question_id">
-          <div>leaderboard</div>
-        </Route>
-        <Route path="/add">
-          <div>add</div>
-        </Route>
-      </Switch>
-    </div>
-  </Router>
-);
+};
 
 export default App;
